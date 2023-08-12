@@ -37,7 +37,7 @@ public class UserController : Controller
             var user = await _userRepository.GetUser(id);
             return user == null ? BadRequest("User does not exist") : Ok(user.AsDto());
         }
-        return BadRequest("Access denied");
+        return Unauthorized("Access denied");
     }
 
     [HttpPut("{id}"), Authorize]
@@ -48,7 +48,7 @@ public class UserController : Controller
             var updatedUser = await _userRepository.UpdateUser(id, request);
             return updatedUser == null ? BadRequest("User doesn't exits") : Ok(updatedUser.AsDto().Stringify());
         }
-        return BadRequest("Access denied");
+        return Unauthorized("Access denied");
     }
 
     [HttpDelete("{id}"), Authorize]
@@ -60,7 +60,7 @@ public class UserController : Controller
             _userRepository.DeleteUser(id);
             _accountService.Blacklist();
         }
-        return BadRequest("Access denied");
+        return Unauthorized("Access denied");
     }
 
     [HttpPost, AllowAnonymous]
@@ -95,6 +95,7 @@ public class UserController : Controller
         }
     
         var token = _credentialsService.CreateToken(user);
+
         return Ok(token);
     }
 
