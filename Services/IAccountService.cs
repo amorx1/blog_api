@@ -8,7 +8,7 @@ namespace BlogAPI.Services
 	public interface IAccountService
 	{
 		//UserEntity GetUser(int id);
-		int GetUserId();
+		string GetUserId();
 		string GetUsername();
 		string GetEmailAddress();
 		void Blacklist();

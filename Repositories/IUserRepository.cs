@@ -6,11 +6,11 @@ namespace BlogAPI.Repositories
 {
 	public interface IUserRepository
 	{
-        void AddUser(UserEntity user);
-        void DeleteUser(int id);
 		bool EmailExists(string requestEmail);
-        Task<UserEntity?> GetUser(int id);
-		Task<UserEntity?> UpdateUser(int id, UserDto updates);
+        Task<bool> DeleteUser(int userId);
+        Task<bool> AddUser(UserEntity user);
+        Task<UserEntity?> GetUser(int userId);
+		Task<UserEntity?> UpdateUser(int userId, UserDto updates);
 	}
 }
 

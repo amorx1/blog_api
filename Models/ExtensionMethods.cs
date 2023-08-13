@@ -5,9 +5,9 @@ namespace BlogAPI.Models;
 
 public static partial class PostEntityExtensionMethods
 {
-    public static PostDto AsDto(this PostEntity post)
+    public static PostDto? AsDto(this PostEntity post)
     {
-        return new PostDto
+        return (post == null) ? null : new PostDto
         {
             Id = post.Id,
             Title = post.Title,
@@ -16,22 +16,13 @@ public static partial class PostEntityExtensionMethods
             AuthorId = post.Author.Id
         };
     }
-
-    public static PostEntity Update(this PostEntity post, PostDto newPost)
-    {
-        post.Title = newPost.Title;
-        post.Body = newPost.Body;
-        post.IsPrivate = newPost.IsPrivate;
-
-        return post;
-    }
 }
 
 public static partial class UserEntityExtensionMethods
 {
-    public static UserDto AsDto(this UserEntity user)
+    public static UserDto? AsDto(this UserEntity user)
     {
-        return new UserDto
+        return (user == null) ? null : new UserDto
         {
             Id = user.Id,
             UserName = user.UserName,

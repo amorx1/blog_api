@@ -11,7 +11,7 @@ using BlogAPI.Repositories;
 namespace BlogAPI.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("Users")]
 public class UserController : Controller
 {
     private readonly BlogContext _db;
@@ -35,7 +35,7 @@ public class UserController : Controller
         // checks jwt token credentials match request id (user making request for id is the owner)
         if (await _accountService.ResolveUser(id)) {
             var user = await _userRepository.GetUser(id);
-            return user == null ? BadRequest("User does not exist") : Ok(user.AsDto());
+            return (user == null) ? BadRequest("User does not exist") : Ok(user.AsDto());
         }
         return Unauthorized("Access denied");
     }
@@ -46,24 +46,29 @@ public class UserController : Controller
         if (await _accountService.ResolveUser(id))
         {
             var updatedUser = await _userRepository.UpdateUser(id, request);
-            return updatedUser == null ? BadRequest("User doesn't exits") : Ok(updatedUser.AsDto().Stringify());
+            return updatedUser == null ? BadRequest("User doesn't exit") : Ok(updatedUser.AsDto().Stringify());
         }
         return Unauthorized("Access denied");
     }
 
     [HttpDelete("{id}"), Authorize]
-    public async Task<IActionResult> RemoveUserAsync(int id)
+    public async Task<ActionResult> RemoveUserAsync(int id)
     {
         // checks jwt token credentials match request id (user making request for id is the owner)
         if (await _accountService.ResolveUser(id))
         {
-            _userRepository.DeleteUser(id);
-            _accountService.Blacklist();
+            var success = await _userRepository.DeleteUser(id);
+            if (success)
+            {
+                _accountService.Blacklist();
+                return Ok("Deleted");
+            }
+            return BadRequest("User not found");
         }
         return Unauthorized("Access denied");
     }
-
-    [HttpPost, AllowAnonymous]
+    
+    [HttpPost("new"), AllowAnonymous]
     public async Task<ActionResult<UserDto>> CreateUserAsync(Credentials request)
     {
         if (_userRepository.EmailExists(request.email))
@@ -80,12 +85,12 @@ public class UserController : Controller
             PasswordHash = passwordHash,
             PasswordSalt = passwordSalt,
         };
-        _userRepository.AddUser(newUser);
-   
-        return Ok(newUser.AsDto());
-    }
 
-    [HttpPost("auth"), AllowAnonymous]
+        var success = await _userRepository.AddUser(newUser);
+        return success ? Ok(newUser.AsDto()) : Problem("Error creating user");
+       }
+
+    [HttpPost("authenticate"), AllowAnonymous]
     public async Task<ActionResult<string>> AuthenticateAsync(Credentials request)
     {
         var user = _db.Users.FirstOrDefault(user => user.EmailAddress == request.email && user.UserName == request.username);
@@ -97,18 +102,6 @@ public class UserController : Controller
         var token = _credentialsService.CreateToken(user);
 
         return Ok(token);
-    }
-
-    [HttpGet("/User/{id}/Post"), Authorize]
-    public async Task<IActionResult> GetAllPostsForIdAsync(int id)
-    {
-        var author = await _db.Users.FindAsync(id);
-        var posts =
-            await _accountService.ResolveUser(id) ?
-             _db.Posts.Where(p => p.Author == author).Select(p => p.AsDto())
-            :
-             _db.Posts.Where(p => p.Author == author && !p.IsPrivate).Select(p => p.AsDto());
-        return Ok(posts.AsEnumerable().ToList());
     }
 
     // TODO: Delete this method

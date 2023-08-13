@@ -1,5 +1,6 @@
 using BlogAPI.Models;
 using BlogAPI.PostgreSQL;
+using BlogAPI.Repositories;
 using BlogAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,92 +9,79 @@ using Microsoft.EntityFrameworkCore;
 namespace BlogAPI.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("Posts")]
 public class PostController : ControllerBase
 {
     private readonly BlogContext _db;
     private readonly IConfiguration _configuration;
     private readonly IAccountService _accountService;
+    private readonly IPostRepository _postRepository;
 
-    public PostController(BlogContext context, IConfiguration config, IAccountService accountService)
+    public PostController(BlogContext context, IConfiguration config, IAccountService accountService, IPostRepository postRepository)
     {
         _db = context;
         _configuration = config;
         _accountService = accountService;
+        _postRepository = postRepository;
     }
 
     [HttpPut("{postId}"), Authorize]
-    public async Task<IActionResult> UpdatePostAsync(int postId, PostDto request)
+    public async Task<ActionResult> UpdatePostAsync(int postId, PostDto request)
     {
         if (await _accountService.ResolveUser(request.AuthorId))
         {
-            var author = await _db.Users.FindAsync(_accountService.GetUserId());
-            var post = await _db.Posts.FirstOrDefaultAsync(p => p.Author == author && p.Id == postId);
-            post.Update(request);
-
-            _db.Posts.Update(post);
-            await _db.SaveChangesAsync();
-
-            return Ok(post.AsDto());
+	        return Ok(await _postRepository.UpdatePost(postId, request));
         }
-        return BadRequest("Access denied");
+        return Unauthorized("Access denied");
     }
 
     [HttpDelete("{postId}"), Authorize]
-    public async Task<IActionResult> DeletePostAsync(int postId, PostDto request)
+    public async Task<ActionResult> DeletePostAsync(int postId, int authorId)
     {
-        if (await _accountService.ResolveUser(request.AuthorId))
+        if (await _accountService.ResolveUser(authorId))
         {
-            var author = await _db.Users.FindAsync(_accountService.GetUserId());
-            var post = await _db.Posts.FirstOrDefaultAsync(p => p.Author == author && p.Id == postId);
-
-            _db.Posts.Remove(post);
-            await _db.SaveChangesAsync();
-
-            return Ok($"Deleted post with Id: {postId}");
+            var success = await _postRepository.DeletePost(postId, authorId);
+            return success ? Ok($"Deleted post ID: {postId} by user ID: {authorId}") : Problem("Error deleting post");
         }
-        return BadRequest("Access denied");
+        return Unauthorized("Access denied");
     }
 
     [HttpPost, Authorize]
-    public async Task<IActionResult> CreatePostAsync(PostDto request)
+    public async Task<ActionResult> CreatePostAsync(PostDto request)
     {
         if (await _accountService.ResolveUser(request.AuthorId))
         {
-            var author = await _db.Users.FindAsync(_accountService.GetUserId());
-            if (author == null)
-            {
-                return BadRequest("Author does not exist");
-            }
-            var newPost = new PostEntity
-            {
-                Title = request.Title,
-                Body = request.Body,
-                Author = author,
-                IsPrivate = request.IsPrivate
-            };
-
-            _db.Posts.Add(newPost);
-            await _db.SaveChangesAsync();
-
-            return Ok(newPost.AsDto());
+            var newPost = await _postRepository.AddPost(request);
+            return (newPost == null) ? Problem("Error creating post") : Ok(newPost);
         }
-        return BadRequest("Access denied");
+        return Unauthorized("Access denied");
     }
 
-    //[HttpDelete("DeletePost"), Authorize]
-    //public async Task<IActionResult> DeletePost(int postToBeDeletedId)
-    //{
-    //    var thisUser = await _db.Users.FirstOrDefaultAsync(u => u.UserName == User.Identity.Name);
-    //    var postToBeDeleted = _db.Posts.Where(p => p.UserId == thisUser.UserId).FirstOrDefault(p => p.PostId == postToBeDeletedId);
+    [HttpGet("{postId}"), Authorize]
+    public async Task<ActionResult<PostDto>> GetPostById(int postId)
+    {
+        var post = await  _postRepository.GetPost(postId);
+        if (post == null)
+        {
+            return BadRequest("Post does not exist");
+        }
+        if (!post.IsPrivate || (post.IsPrivate && await _accountService.ResolveUser(post.AuthorId)))
+        {
+            return Ok(post);
+        }
+        return Unauthorized("Access denied");
+        
+    }
 
-    //    if (postToBeDeleted == null)
-    //    {
-    //        return BadRequest("The post either does not exist or you do not have authorization to delete it");
-    //    }
-
-    //    _db.Posts.Remove(postToBeDeleted);
-    //    await _db.SaveChangesAsync();
-    //    return Ok("Deleted post!");
-    //}
+    [HttpGet, Authorize]
+    public async Task<ActionResult> GetPostsForUser(int userId)
+    {
+        var author = await _db.Users.FindAsync(userId);
+        var posts =
+            await _accountService.ResolveUser(userId) ?
+             _db.Posts.Where(p => p.Author == author).Select(p => p.AsDto())
+            :
+             _db.Posts.Where(p => p.Author == author && !p.IsPrivate).Select(p => p.AsDto());
+        return Ok(posts.AsEnumerable().ToList());
+    }
 }

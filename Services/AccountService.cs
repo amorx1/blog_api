@@ -20,10 +20,10 @@ namespace BlogAPI.Services
 			_redisDb = _redisCache.GetDatabase();
 		}
 
-		public int GetUserId()
+		public string GetUserId()
 		{
 			var idString = _httpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return idString != null ? Int32.Parse(idString) : throw new Exception("Error fetching identity");
+            return idString;
         }
 
         public string GetUsername()
@@ -61,7 +61,11 @@ namespace BlogAPI.Services
 			return !await _redisDb.KeyExistsAsync(token);
 		}
 
-        public bool MatchesId(int requestUserId) => GetUserId() == requestUserId;
+        public bool MatchesId(int requestUserId)
+		{
+			var tokenId = GetUserId();
+			return tokenId != null && Int32.Parse(tokenId) == requestUserId;
+		}
 
 		public async Task<bool> ResolveUser(int requestUserId)
 		{
