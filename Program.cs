@@ -1,20 +1,12 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using BlogAPI.PostgreSQL;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
-using AutoMapper;
-using BlogAPI.Models;
 using BlogAPI.Services;
+using BlogAPI.Interfaces;
 using StackExchange.Redis;
 using BlogAPI.Repositories;
 
@@ -76,7 +68,9 @@ builder.Services.AddScoped<ICredentialsService, CredentialsService>();
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")));
 builder.Services.AddScoped<IAccountService, AccountService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+// builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<EFUserRepository>();
+builder.Services.AddScoped<IPostRepository, PostRepository>();
 
 var app = builder.Build();
 

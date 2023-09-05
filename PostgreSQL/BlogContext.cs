@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using System.Data;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System.Data.Entity.ModelConfiguration;
 using System.ComponentModel.DataAnnotations.Schema;
+using BlogAPI.Interfaces;
+
 
 namespace BlogAPI.PostgreSQL
 {
@@ -18,7 +13,7 @@ namespace BlogAPI.PostgreSQL
         public DbSet<PostEntity> Posts { get; set; }
     }
 
-    public class UserEntity
+    public class UserEntity : IEntity
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -29,7 +24,7 @@ namespace BlogAPI.PostgreSQL
         public byte[] PasswordSalt { get; set; }
     }
 
-    public class PostEntity
+    public class PostEntity : IEntity
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

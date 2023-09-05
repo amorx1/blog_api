@@ -1,40 +1,42 @@
 ﻿using System;
+using System.CodeDom;
+using BlogAPI.Interfaces;
 using BlogAPI.PostgreSQL;
 
-namespace BlogAPI.Models;
-
-public static partial class PostEntityExtensionMethods
+namespace BlogAPI.Models
 {
-    public static PostDto? AsDto(this PostEntity post)
+    public static partial class PostEntityExtensionMethods
     {
-        return (post == null) ? null : new PostDto
+        public static PostDto? AsDto(this PostEntity? post)
         {
-            Id = post.Id,
-            Title = post.Title,
-            Body = post.Body,
-            IsPrivate = post.IsPrivate,
-            AuthorId = post.Author.Id
-        };
+            return (post is null) ? null : new PostDto
+            {
+                Id = post.Id,
+                Title = post.Title,
+                Body = post.Body,
+                IsPrivate = post.IsPrivate,
+                AuthorId = post.Author.Id
+            };
+        }
+    }
+
+    public static partial class UserEntityExtensionMethods
+    {
+        public static UserDto? AsDto(this UserEntity user)
+        {
+            return (user == null) ? null : new UserDto
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                EmailAddress = user.EmailAddress
+            };
+        }
+
+        public static string Stringify(this UserDto user)
+        {
+            return $"Id: {user.Id} -> {user.UserName}";
+        }
+
+
     }
 }
-
-public static partial class UserEntityExtensionMethods
-{
-    public static UserDto? AsDto(this UserEntity user)
-    {
-        return (user == null) ? null : new UserDto
-        {
-            Id = user.Id,
-            UserName = user.UserName,
-            EmailAddress = user.EmailAddress
-        };
-    }
-
-    public static string Stringify(this UserDto user)
-    {
-        return $"Id: {user.Id} -> {user.UserName}";
-    }
-
-
-}
-

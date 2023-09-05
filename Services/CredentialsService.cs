@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using BlogAPI.PostgreSQL;
+using BlogAPI.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 
 namespace BlogAPI.Services

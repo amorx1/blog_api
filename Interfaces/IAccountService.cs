@@ -3,7 +3,7 @@ using BlogAPI.Models;
 using BlogAPI.PostgreSQL;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BlogAPI.Services
+namespace BlogAPI.Interfaces
 {
 	public interface IAccountService
 	{

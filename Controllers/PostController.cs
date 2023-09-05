@@ -1,15 +1,13 @@
 using BlogAPI.Models;
 using BlogAPI.PostgreSQL;
-using BlogAPI.Repositories;
-using BlogAPI.Services;
+using BlogAPI.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace BlogAPI.Controllers;
 
 [ApiController]
-[Route("Posts")]
+[Route("api")]
 public class PostController : ControllerBase
 {
     private readonly BlogContext _db;
@@ -25,7 +23,7 @@ public class PostController : ControllerBase
         _postRepository = postRepository;
     }
 
-    [HttpPut("{postId}"), Authorize]
+    [HttpPut("post/{postId}"), Authorize]
     public async Task<ActionResult> UpdatePostAsync(int postId, PostDto request)
     {
         if (await _accountService.ResolveUser(request.AuthorId))
@@ -35,7 +33,7 @@ public class PostController : ControllerBase
         return Unauthorized("Access denied");
     }
 
-    [HttpDelete("{postId}"), Authorize]
+    [HttpDelete("post/{postId}"), Authorize]
     public async Task<ActionResult> DeletePostAsync(int postId, int authorId)
     {
         if (await _accountService.ResolveUser(authorId))
@@ -46,7 +44,7 @@ public class PostController : ControllerBase
         return Unauthorized("Access denied");
     }
 
-    [HttpPost, Authorize]
+    [HttpPost("post"), Authorize]
     public async Task<ActionResult> CreatePostAsync(PostDto request)
     {
         if (await _accountService.ResolveUser(request.AuthorId))
@@ -57,7 +55,7 @@ public class PostController : ControllerBase
         return Unauthorized("Access denied");
     }
 
-    [HttpGet("{postId}"), Authorize]
+    [HttpGet("post/{postId}"), Authorize]
     public async Task<ActionResult<PostDto>> GetPostById(int postId)
     {
         var post = await  _postRepository.GetPost(postId);
@@ -73,7 +71,7 @@ public class PostController : ControllerBase
         
     }
 
-    [HttpGet, Authorize]
+    [HttpGet("posts/{userId}"), Authorize]
     public async Task<ActionResult> GetPostsForUser(int userId)
     {
         var author = await _db.Users.FindAsync(userId);

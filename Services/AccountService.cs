@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using BlogAPI.PostgreSQL;
+using BlogAPI.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using StackExchange.Redis;
 

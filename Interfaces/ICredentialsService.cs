@@ -1,6 +1,6 @@
 ﻿using BlogAPI.PostgreSQL;
 
-namespace BlogAPI.Services
+namespace BlogAPI.Interfaces
 {
     public interface ICredentialsService
     {

@@ -1,6 +1,7 @@
 ﻿using System;
 using BlogAPI.Models;
 using BlogAPI.PostgreSQL;
+using BlogAPI.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlogAPI.Repositories
@@ -16,7 +17,7 @@ namespace BlogAPI.Repositories
 
         public async Task<PostDto?> GetPost(int postId)
         {
-			var post = await _db.Posts.FindAsync(postId);
+			var post = await _db.Posts.Include(p => p.Author).FirstOrDefaultAsync(p => p.Id == postId);
             return post.AsDto();
         }
 

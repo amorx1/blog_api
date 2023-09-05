@@ -1,0 +1,4 @@
+{
+    "dotnet.defaultSolution": "BlogAPI.sln",
+    "dotnet.preferRuntimeFromSDK": false
+}

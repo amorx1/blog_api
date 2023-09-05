@@ -1,5 +1,4 @@
-﻿using System;
-using System.Data.Entity;
+﻿using BlogAPI.Interfaces;
 using BlogAPI.Models;
 using BlogAPI.PostgreSQL;
 
@@ -68,7 +67,7 @@ namespace BlogAPI.Repositories
 			}
 		}
 
-		public bool EmailExists(string requestEmail) => (_db.Users.Any(u => u.EmailAddress == requestEmail) == true);
+		public bool EmailExists(string requestEmail) => _db.Users.Any(u => u.EmailAddress == requestEmail) == true;
 
     }
 }

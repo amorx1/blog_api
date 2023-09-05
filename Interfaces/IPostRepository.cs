@@ -2,7 +2,7 @@
 using BlogAPI.Models;
 using BlogAPI.PostgreSQL;
 
-namespace BlogAPI.Repositories
+namespace BlogAPI.Interfaces
 {
 	public interface IPostRepository
 	{

@@ -1,17 +1,13 @@
-using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Mvc;
 using BlogAPI.PostgreSQL;
 using BlogAPI.Models;
 using Microsoft.AspNetCore.Authorization;
-using BlogAPI.Services;
-using StackExchange.Redis;
-using System.Data.Entity;
-using BlogAPI.Repositories;
+using BlogAPI.Interfaces;
 
 namespace BlogAPI.Controllers;
 
 [ApiController]
-[Route("Users")]
+[Route("api")]
 public class UserController : Controller
 {
     private readonly BlogContext _db;
@@ -29,29 +25,29 @@ public class UserController : Controller
         _userRepository = userRepository;
     }
 
-    [HttpGet("{id}"), Authorize]
+    [HttpGet("user/{id}"), Authorize]
     public async Task<ActionResult<UserDto>> GetUserAsync(int id)
     {
         // checks jwt token credentials match request id (user making request for id is the owner)
         if (await _accountService.ResolveUser(id)) {
             var user = await _userRepository.GetUser(id);
-            return (user == null) ? BadRequest("User does not exist") : Ok(user.AsDto());
+            return user is null ? BadRequest("User does not exist") : Ok(user.AsDto());
         }
         return Unauthorized("Access denied");
     }
 
-    [HttpPut("{id}"), Authorize]
+    [HttpPut("user/{id}"), Authorize]
     public async Task<ActionResult<UserDto>> UpdateUserAsync(int id, UserDto request)
     {
         if (await _accountService.ResolveUser(id))
         {
             var updatedUser = await _userRepository.UpdateUser(id, request);
-            return updatedUser == null ? BadRequest("User doesn't exit") : Ok(updatedUser.AsDto().Stringify());
+            return updatedUser is null ? BadRequest("User doesn't exit") : Ok(updatedUser.AsDto().Stringify());
         }
         return Unauthorized("Access denied");
     }
 
-    [HttpDelete("{id}"), Authorize]
+    [HttpDelete("user/{id}"), Authorize]
     public async Task<ActionResult> RemoveUserAsync(int id)
     {
         // checks jwt token credentials match request id (user making request for id is the owner)
@@ -68,7 +64,7 @@ public class UserController : Controller
         return Unauthorized("Access denied");
     }
     
-    [HttpPost("new"), AllowAnonymous]
+    [HttpPost("user/new"), AllowAnonymous]
     public async Task<ActionResult<UserDto>> CreateUserAsync(Credentials request)
     {
         if (_userRepository.EmailExists(request.email))
@@ -94,7 +90,7 @@ public class UserController : Controller
     public async Task<ActionResult<string>> AuthenticateAsync(Credentials request)
     {
         var user = _db.Users.FirstOrDefault(user => user.EmailAddress == request.email && user.UserName == request.username);
-        if (user == null || !_credentialsService.VerifyPasswordHash(request.password, user.PasswordHash, user.PasswordSalt))
+        if (user is null || !_credentialsService.VerifyPasswordHash(request.password, user.PasswordHash, user.PasswordSalt))
         {
             return BadRequest("Invalid credentials");
         }
