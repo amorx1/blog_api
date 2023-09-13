@@ -32,14 +32,17 @@ namespace BlogAPI.Controllers
                 
         // GET: api/[controller]/5
         [HttpGet("{id}"), Authorize]
+        [AuthenticationFilter]
         public async Task<ActionResult<TDto?>> GetAsync(int id)
         {
-            // checks jwt token credentials match request id (user making request for id is the owner)
-            if (await accountService.ResolveUser(id)) {
-                var entity = await repository.GetAsync(id);
-                return entity is null ? BadRequest("User does not exist") : Ok(DTO(entity));
-            }
-            return Unauthorized("Access denied");
+            // // checks jwt token credentials match request id (user making request for id is the owner)
+            // if (await accountService.ResolveUser(id)) {
+            //     var entity = await repository.GetAsync(id);
+            //     return entity is null ? BadRequest("User does not exist") : Ok(DTO(entity));
+            // }
+            // return Unauthorized("Access denied");
+            var entity = await repository.GetAsync(id);
+            return entity is null ? BadRequest("Does not exist!") : Ok(DTO(entity));
         }
 
         // [HttpPut("user/{id}"), Authorize]

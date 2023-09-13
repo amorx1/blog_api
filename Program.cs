@@ -9,6 +9,7 @@ using BlogAPI.Services;
 using BlogAPI.Interfaces;
 using StackExchange.Redis;
 using BlogAPI.Repositories;
+using BlogAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,7 +69,8 @@ builder.Services.AddScoped<ICredentialsService, CredentialsService>();
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")));
 builder.Services.AddScoped<IAccountService, AccountService>();
-// builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<AuthenticationFilterAttribute>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<EFUserRepository>();
 builder.Services.AddScoped<IPostRepository, PostRepository>();
 
