@@ -10,9 +10,10 @@ namespace BlogAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public abstract class BaseController<TEntity, TDto, TRepository> : ControllerBase
+    public abstract class BaseController<TEntity, TDto, TDtoCredentials, TRepository> : ControllerBase
     where TEntity : class, IEntity
     where TDto : class, IDto
+    where TDtoCredentials: class, IDto
     where TRepository: IRepository<TEntity>
     {
         private readonly TRepository repository;
@@ -25,25 +26,39 @@ namespace BlogAPI.Controllers
             this.accountService = accountService;
             this.credentialsService = credentialsService;
         }
-
-        // Function to remap entity to DTO depending on concrete conversion passed to constructor
         public abstract TDto? DTO(TEntity entity);
-        // public abstract TEntity? MergeUpdates(TEntity entity, TDto dto);
-                
+
+        // GET
+        public abstract Task<ActionResult<TDto?>> GetAsync(int id);
+        public abstract Task<ActionResult<TDto?>> RemoveAsync(int id);
+        public abstract Task<ActionResult<TDto?>> UpdateAsync(int id, TDto updates);
+        public abstract Task<ActionResult<TDto?>> CreateAsync(Credentials request);
+        
+        // GET
+        // [HttpGet("{id}"), Authorize]
+        // [AuthenticationFilter]
+        // public async Task<ActionResult<TDto?>> GetAsync(int id)
+        // {
+        //     var entity = await repository.GetAsync(id);
+        //     return entity is null ? BadRequest("Does not exist!") : Ok(DTO(entity));
+        // }
+        // public abstract Task<ActionResult<TDto?>> CreateAsync(TDto entity);
+        
+        // [HttpDelete("user/{id}"), Authorize]
+        // [AuthenticationFilter]
+        // public async Task<ActionResult<TDto?>> RemoveAsync(int id)
+        // {
+        //     var deletedEntity = await repository.DeleteAsync(id);
+        //     if (deletedEntity is null)
+        //     {
+        //         return BadRequest("User not found");
+        //     }
+        //     // override this for user controller
+        //     // accountService.Blacklist();
+        //     return Ok(DTO(deletedEntity));
+        // }
+
         // GET: api/[controller]/5
-        [HttpGet("{id}"), Authorize]
-        [AuthenticationFilter]
-        public async Task<ActionResult<TDto?>> GetAsync(int id)
-        {
-            // // checks jwt token credentials match request id (user making request for id is the owner)
-            // if (await accountService.ResolveUser(id)) {
-            //     var entity = await repository.GetAsync(id);
-            //     return entity is null ? BadRequest("User does not exist") : Ok(DTO(entity));
-            // }
-            // return Unauthorized("Access denied");
-            var entity = await repository.GetAsync(id);
-            return entity is null ? BadRequest("Does not exist!") : Ok(DTO(entity));
-        }
 
         // [HttpPut("user/{id}"), Authorize]
         // public async Task<ActionResult<TDto?>> UpdateAsync(int id, TDto updates)
@@ -56,23 +71,6 @@ namespace BlogAPI.Controllers
         //     }
         //     return Unauthorized("Access denied");
         // }   
-        
-        [HttpDelete("user/{id}"), Authorize]
-        public async Task<ActionResult<TDto?>> RemoveAsync(int id)
-        {
-            // checks jwt token credentials match request id (user making request for id is the owner)
-            if (await accountService.ResolveUser(id))
-            {
-                var deletedEntity = await repository.DeleteAsync(id);
-                if (deletedEntity is null)
-                {
-                    return BadRequest("User not found");
-                }
-                accountService.Blacklist();
-                return Ok(DTO(deletedEntity));
-            }
-            return Unauthorized("Access denied");
-        }
 
         // public abstract Task<ActionResult<TDto?>> CreateAsync(TDto creds);
         // [HttpPost("user/new"), AllowAnonymous]

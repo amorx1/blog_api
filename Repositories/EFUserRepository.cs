@@ -14,7 +14,11 @@ namespace BlogAPI.Repositories
             this.context = context;
         }
         // add user specific here
-        public bool CheckExists(string identifier)
+        public async Task<UserEntity> FindAsync(string identifier) // username
+        {
+            return await context.Set<UserEntity>().FirstOrDefaultAsync(u => u.EmailAddress == identifier);
+        }
+        public bool AlreadyExists(string identifier)
         {
             if (identifier.GetType() != typeof(string))
             {
