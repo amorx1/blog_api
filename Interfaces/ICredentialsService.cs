@@ -1,4 +1,4 @@
-﻿using BlogAPI.PostgreSQL;
+﻿using BlogAPI.Models;
 
 namespace BlogAPI.Interfaces
 {

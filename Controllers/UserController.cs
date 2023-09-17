@@ -1,117 +1,108 @@
-// using Microsoft.AspNetCore.Mvc;
-// using BlogAPI.PostgreSQL;
-// using BlogAPI.Models;
-// using Microsoft.AspNetCore.Authorization;
-// using BlogAPI.Interfaces;
+using System;
+using BlogAPI.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using BlogAPI.Models;
+using BlogAPI.Repositories;
+using BlogAPI.PostgreSQL;
+using BlogAPI.Dtos;
+using AutoMapper;
+using BlogApi;
 
-// namespace BlogAPI.Controllers;
+namespace BlogAPI.Controllers
+{
+    [Route("api")]
+    [ApiController]
+    public class UserController : BaseController<UserEntity, UserReadDto, UserWriteDto, EFUserRepository>
+    {
+        private readonly EFUserRepository _repository;
+        private readonly ICredentialsService _credentialsService;
+        private readonly IAccountService _accountService;
+        private readonly IMapper _mapper;
 
-// [ApiController]
-// [Route("api")]
-// public class UserController : Controller
-// {
-//     private readonly BlogContext _db;
-//     private readonly IConfiguration _configuration;
-//     private readonly ICredentialsService _credentialsService;
-//     private readonly IAccountService _accountService;
+        public UserController(EFUserRepository repository, IAccountService accountService, ICredentialsService credentialsService, IMapper mapper)
+        : base(repository, accountService, credentialsService, mapper)
+        {
+            this._repository = repository;
+            this._credentialsService = credentialsService;
+            this._accountService = accountService;
+            this._mapper = mapper;
+        }
 
-//     private readonly IUserRepository _userRepository;
+        [HttpGet("user/{id}"), Authorize, AuthenticationFilter]
+        public override async Task<ActionResult<UserReadDto?>> GetAsync([FromRoute] int id)
+        {
+            var user = await _repository.GetAsync(id);
+            return user is null ? BadRequest("Does not exist!") : Ok(_mapper.Map<UserReadDto>(user));
+        }
 
-//     public UserController(BlogContext context, IConfiguration config, ICredentialsService credentialsService, IAccountService accountService, IUserRepository userRepository) {
-//         _db = context;
-//         _configuration = config;
-//         _credentialsService = credentialsService;
-//         _accountService = accountService;
-//         _userRepository = userRepository;
-//     }
+        [HttpDelete("user/{id}"), Authorize, AuthenticationFilter]
+        public override async Task<ActionResult<UserReadDto?>> RemoveAsync([FromRoute] int id)
+        {
+            var deletedEntity = await _repository.DeleteAsync(id);
+            if (deletedEntity is null)
+            {
+                return BadRequest("User not found");
+            }
+            _accountService.Blacklist();
+            return Ok(_mapper.Map<UserReadDto>(deletedEntity));
+        }
 
-//     [HttpGet("user/{id}"), Authorize]
-//     public async Task<ActionResult<UserDto>> GetUserAsync(int id)
-//     {
-//         // checks jwt token credentials match request id (user making request for id is the owner)
-//         if (await _accountService.ResolveUser(id)) {
-//             var user = await _userRepository.GetUser(id);
-//             return user is null ? BadRequest("User does not exist") : Ok(user.AsDto());
-//         }
-//         return Unauthorized("Access denied");
-//     }
+        [HttpPost("user/new"), AllowAnonymous, AssertUnauthenticatedFilter] // prevent user creation when already authenticated
+        public override async Task<ActionResult<UserReadDto?>> CreateAsync([FromBody] UserWriteDto request)
+        {
+            // needs to be taken out of
+            var emailTaken = _repository.Exists(request.EmailAddress);
 
-//     [HttpPut("user/{id}"), Authorize]
-//     public async Task<ActionResult<UserDto>> UpdateUserAsync(int id, UserDto request)
-//     {
-//         if (await _accountService.ResolveUser(id))
-//         {
-//             var updatedUser = await _userRepository.UpdateUser(id, request);
-//             return updatedUser is null ? BadRequest("User doesn't exit") : Ok(updatedUser.AsDto().Stringify());
-//         }
-//         return Unauthorized("Access denied");
-//     }
+            _credentialsService.CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
 
-//     [HttpDelete("user/{id}"), Authorize]
-//     public async Task<ActionResult> RemoveUserAsync(int id)
-//     {
-//         // checks jwt token credentials match request id (user making request for id is the owner)
-//         if (await _accountService.ResolveUser(id))
-//         {
-//             var success = await _userRepository.DeleteUser(id);
-//             if (success)
-//             {
-//                 _accountService.Blacklist();
-//                 return Ok("Deleted");
-//             }
-//             return BadRequest("User not found");
-//         }
-//         return Unauthorized("Access denied");
-//     }
-    
-//     [HttpPost("user/new"), AllowAnonymous]
-//     public async Task<ActionResult<UserDto>> CreateUserAsync(Credentials request)
-//     {
-//         if (_userRepository.EmailExists(request.email))
-//         {
-//             return BadRequest("Email address is taken, please try another.");
-//         }
+            var newUser = _mapper.Map<UserEntity>(request, opt => 
+            {
+                opt.AfterMap((source, destination) =>
+                {
+                    destination.PasswordHash = passwordHash;
+                    destination.PasswordSalt = passwordSalt;
+                });
+            });
 
-//         _credentialsService.CreatePasswordHash(request.password, out byte[] passwordHash, out byte[] passwordSalt);
+            if (await emailTaken)
+            {
+                return BadRequest("Failed to create user. Email address already exists.");
+            }
 
-//         var newUser = new UserEntity
-//         {
-//             EmailAddress = request.email,
-//             UserName = request.username,
-//             PasswordHash = passwordHash,
-//             PasswordSalt = passwordSalt,
-//         };
+            var newEntity = await _repository.AddAsync(newUser);
+            return (newEntity is not null) ? _mapper.Map<UserReadDto>(newEntity) : BadRequest("Failed to create user");
+        }
 
-//         var success = await _userRepository.AddUser(newUser);
-//         return success ? Ok(newUser.AsDto()) : Problem("Error creating user");
-//        }
+        [HttpPut("user/{id}"), Authorize, AuthenticationFilter]
+        public override async Task<ActionResult<UserReadDto?>> UpdateAsync([FromRoute] int id, UserWriteDto updates)
+        {
+            var user = await _repository.GetAsync(id);
+            if (user is null)
+            {
+                return BadRequest("User does not exist");
+            }
 
-//     [HttpPost("authenticate"), AllowAnonymous]
-//     public async Task<ActionResult<string>> AuthenticateAsync(Credentials request)
-//     {
-//         var user = _db.Users.FirstOrDefault(user => user.EmailAddress == request.email && user.UserName == request.username);
-//         if (user is null || !_credentialsService.VerifyPasswordHash(request.password, user.PasswordHash, user.PasswordSalt))
-//         {
-//             return BadRequest("Invalid credentials");
-//         }
-    
-//         var token = _credentialsService.CreateToken(user);
+            // merge updates
+            user.UserName = updates.UserName;
+            var updatedUser = await _repository.UpdateAsync(user);
 
-//         return Ok(token);
-//     }
+            return Ok(_mapper.Map<UserReadDto>(updatedUser));
+        }
+        
+        [HttpPost("user/authenticate"), AllowAnonymous]
+        public async Task<ActionResult<string>> AuthenticateAsync([FromBody] UserWriteDto request)
+        {
+            var user = await _repository.FindAsync(request.EmailAddress);
+            if (user is null || !_credentialsService.VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt))
+            {
+                return BadRequest("Invalid credentials");
+            }
+        
+            var token = _credentialsService.CreateToken(user);
 
-//     // TODO: Delete this method
-//     [HttpPost("genUsers"), AllowAnonymous]
-//     public async Task<ActionResult> GenerateUsers()
-//     {
-//         var names = new string[] { "akshay", "vai", "savita" };
-//         var emails = new string[] { "akshay@gmail.com", "vai@gmail.com", "savita@gmail.com" };
-//         var passwords = names.Select(n => n).ToArray();
-
-//         for (int i=0;i<=2;i++)
-//         {
-//             await CreateUserAsync(new Credentials { email = emails[i], username = names[i], password = passwords[i] });
-//         }
-//         return Ok();
-//     }
-// }
+            return Ok(token);
+        }
+    }
+}

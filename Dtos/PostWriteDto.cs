@@ -1,9 +1,10 @@
-using System;
-using BlogAPI.Interfaces;
-namespace BlogAPI.Models
+
+using BlogAPI.Models;
+
+namespace BlogAPI.Dtos
 {
-    public class PostDto {
-        public int Id { get; set; }
+    public class PostWriteDto : IDto
+    {
         public string? Title { get; set; }
         public string? Body { get; set; }
         public bool IsPrivate { get; set; }

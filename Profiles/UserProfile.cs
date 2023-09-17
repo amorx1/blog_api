@@ -2,7 +2,7 @@
 using System.Data.Entity.Core.Common.CommandTrees;
 using AutoMapper;
 using BlogAPI.Dtos;
-using BlogAPI.PostgreSQL;
+using BlogAPI.Models;
 
 namespace BlogAPI.Profiles
 {

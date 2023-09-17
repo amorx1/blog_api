@@ -1,10 +1,6 @@
-using System;
 using BlogAPI.Interfaces;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using BlogAPI.Models;
-using System.Net.Sockets;
 using AutoMapper;
 
 namespace BlogAPI.Controllers
@@ -30,6 +26,7 @@ namespace BlogAPI.Controllers
             this._mapper = mapper;
         }
 
+        // TODO: Provide generic implementations and override if necessary in concrete controllers.
         public abstract Task<ActionResult<TReadDto?>> GetAsync(int id);
         public abstract Task<ActionResult<TReadDto?>> RemoveAsync(int id);
         public abstract Task<ActionResult<TReadDto?>> UpdateAsync(int id, TWriteDto updates);
