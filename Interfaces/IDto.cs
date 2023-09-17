@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlogAPI.Models
 {
-    public interface IDto {
-        int Id { get; set;}
+    public interface IDto
+    {
+        public string UserName { get; set; }
+        public string EmailAddress { get; set; }
     }
 }

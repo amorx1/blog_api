@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using BlogAPI.Interfaces;
 namespace BlogAPI.Models
 {

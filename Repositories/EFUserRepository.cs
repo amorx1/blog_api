@@ -14,17 +14,17 @@ namespace BlogAPI.Repositories
             this.context = context;
         }
         // add user specific here
-        public async Task<UserEntity> FindAsync(string identifier) // username
+        public async Task<UserEntity> FindAsync(string identifier) // email address
         {
             return await context.Set<UserEntity>().FirstOrDefaultAsync(u => u.EmailAddress == identifier);
         }
-        public bool AlreadyExists(string identifier)
+        public async Task<bool> Exists(string identifier) // email address
         {
             if (identifier.GetType() != typeof(string))
             {
                 return true;
             }
-            return context.Set<UserEntity>().Any(u => u.EmailAddress == identifier) == true;
+            return await context.Set<UserEntity>().AnyAsync(u => u.EmailAddress == identifier) == true;
         }
     }
 }
