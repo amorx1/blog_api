@@ -3,6 +3,9 @@ using BlogAPI.Models;
 
 namespace BlogAPI.Dtos
 {
+    /*
+    Data transfer object for reading blog posts data
+    */
     public class PostReadDto : IDto
     {
         public int Id { get; set; }

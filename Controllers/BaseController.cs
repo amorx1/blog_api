@@ -27,6 +27,7 @@ namespace BlogAPI.Controllers
         }
 
         // TODO: Provide generic implementations and override if necessary in concrete controllers.
+        // TODO: Define delegates for user/post specific actions.
         public abstract Task<ActionResult<TReadDto?>> GetAsync(int id);
         public abstract Task<ActionResult<TReadDto?>> RemoveAsync(int id);
         public abstract Task<ActionResult<TReadDto?>> UpdateAsync(int id, TWriteDto updates);

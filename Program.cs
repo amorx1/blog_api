@@ -70,11 +70,8 @@ builder.Services.AddScoped<ICredentialsService, CredentialsService>();
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")));
 builder.Services.AddScoped<IAccountService, AccountService>();
-builder.Services.AddScoped<AuthenticationFilterAttribute>();
-// builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<EFUserRepository>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-// builder.Services.AddScoped<IPostRepository, PostRepository>();
 
 var app = builder.Build();
 
