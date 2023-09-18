@@ -29,12 +29,12 @@ namespace BlogAPI.Services
         public string GetUsername()
 		{
 			var username = _httpContext?.User.FindFirstValue(ClaimTypes.Name);
-			return username != null ? username : throw new Exception("Error fetching identity");
+			return username ?? throw new Exception("Error fetching identity");
 		}
 		public string GetEmailAddress()
 		{
             var email = _httpContext?.User.FindFirstValue(ClaimTypes.Email);
-            return email != null ? email : throw new Exception("Error fetching identity");
+            return email ?? throw new Exception("Error fetching identity");
         }
 		public async void Blacklist()
 		{

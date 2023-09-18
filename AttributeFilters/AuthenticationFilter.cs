@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace BlogAPI
 {
+    /*
+    Action attribute to verify that request ID matches JWT-encoded identity.
+    */
     public class AuthenticationFilterAttribute : ActionFilterAttribute
     {
         public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)

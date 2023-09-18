@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace BlogApi
 {
+    /*
+    Action filter to assert no JWT token is associated with requests (e.g. for creating new user, authenticating).
+    */
     public class AssertUnauthenticatedFilterAttribute : ActionFilterAttribute
     {
         public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)

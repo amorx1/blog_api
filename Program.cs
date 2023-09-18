@@ -71,6 +71,7 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")));
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<EFUserRepository>();
+builder.Services.AddScoped<EFPostRepository>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();

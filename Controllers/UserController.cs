@@ -22,7 +22,7 @@ namespace BlogAPI.Controllers
         private readonly IMapper _mapper;
 
         public UserController(EFUserRepository repository, IAccountService accountService, ICredentialsService credentialsService, IMapper mapper)
-        : base(repository, accountService, credentialsService, mapper)
+        : base(repository, mapper)
         {
             this._repository = repository;
             this._credentialsService = credentialsService;
@@ -99,7 +99,9 @@ namespace BlogAPI.Controllers
             {
                 return BadRequest("Invalid credentials");
             }
-        
+
+            var x = new int[5];
+                    
             var token = _credentialsService.CreateToken(user);
 
             return Ok(token);

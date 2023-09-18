@@ -42,14 +42,14 @@ namespace BlogAPI.Repositories
             return entity;
         }
 
-        public async Task<TEntity?> GetAsync(int id)
+        public virtual async Task<TEntity?> GetAsync(int id)
         {
             return await context.Set<TEntity>().FindAsync(id);
         }
 
-        public async Task<List<TEntity>> GetAllAsync()
+        public virtual async Task<List<TEntity>> GetAllAsync(int userId)
         {
-            return await context.Set<TEntity>().ToListAsync();
+            return await context.Set<TEntity>().Where(e => e.Id == userId).ToListAsync();
         }
     }
 }
