@@ -24,16 +24,37 @@ namespace BlogAPI.Controllers
 
         // TODO: Provide generic implementations and override if necessary in concrete controllers.
         // TODO: Define delegates for user/post specific actions.
-        public virtual async Task<ActionResult<TReadDto?>> GetAsync(int id)
+        public virtual Task<ActionResult<TReadDto?>> GetAsync(int id)
         {
             throw new NotImplementedException();
         }
-        public virtual async Task<ActionResult<TReadDto?>> GetAsync(int id1, int id2)
+        public virtual Task<ActionResult<TReadDto?>> GetAsync(int id1, int id2)
         {
             throw new NotImplementedException();
         }
-        public abstract Task<ActionResult<TReadDto?>> RemoveAsync(int id);
-        public abstract Task<ActionResult<TReadDto?>> UpdateAsync(int id, TWriteDto updates);
-        public abstract Task<ActionResult<TReadDto?>> CreateAsync(TWriteDto request);
+        public virtual Task<ActionResult<TReadDto?>> RemoveAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual Task<ActionResult<TReadDto?>> RemoveAsync(int id1, int id2)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual Task<ActionResult<TReadDto?>> UpdateAsync(int id, TWriteDto updates)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual Task<ActionResult<TReadDto?>> UpdateAsync(int id1, int id2, TWriteDto updates)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual Task<ActionResult<TReadDto?>> CreateAsync(TWriteDto request)
+        {
+            throw new NotImplementedException();
+        }
+        public virtual Task<ActionResult<TReadDto?>> CreateAsync(int id, TWriteDto request)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

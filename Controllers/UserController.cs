@@ -1,11 +1,8 @@
-using System;
 using BlogAPI.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using BlogAPI.Models;
 using BlogAPI.Repositories;
-using BlogAPI.PostgreSQL;
 using BlogAPI.Dtos;
 using AutoMapper;
 using BlogApi;
@@ -24,17 +21,17 @@ namespace BlogAPI.Controllers
         public UserController(EFUserRepository repository, IAccountService accountService, ICredentialsService credentialsService, IMapper mapper)
         : base(repository, mapper)
         {
-            this._repository = repository;
-            this._credentialsService = credentialsService;
-            this._accountService = accountService;
-            this._mapper = mapper;
+            _repository = repository;
+            _credentialsService = credentialsService;
+            _accountService = accountService;
+            _mapper = mapper;
         }
 
         [HttpGet("user/{id}"), Authorize, AuthenticationFilter]
         public override async Task<ActionResult<UserReadDto?>> GetAsync([FromRoute] int id)
         {
             var user = await _repository.GetAsync(id);
-            return user is null ? BadRequest("Does not exist!") : Ok(_mapper.Map<UserReadDto>(user));
+            return user is null ? NotFound("Does not exist!") : Ok(_mapper.Map<UserReadDto>(user));
         }
 
         [HttpDelete("user/{id}"), Authorize, AuthenticationFilter]
@@ -43,7 +40,7 @@ namespace BlogAPI.Controllers
             var deletedEntity = await _repository.DeleteAsync(id);
             if (deletedEntity is null)
             {
-                return BadRequest("User not found");
+                return NotFound("User not found");
             }
             _accountService.Blacklist();
             return Ok(_mapper.Map<UserReadDto>(deletedEntity));
@@ -52,7 +49,6 @@ namespace BlogAPI.Controllers
         [HttpPost("user/new"), AllowAnonymous, AssertUnauthenticatedFilter] // prevent user creation when already authenticated
         public override async Task<ActionResult<UserReadDto?>> CreateAsync([FromBody] UserWriteDto request)
         {
-            // needs to be taken out of
             var emailTaken = _repository.Exists(request.EmailAddress);
 
             _credentialsService.CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
@@ -81,7 +77,7 @@ namespace BlogAPI.Controllers
             var user = await _repository.GetAsync(id);
             if (user is null)
             {
-                return BadRequest("User does not exist");
+                return NotFound("User does not exist");
             }
 
             // merge updates
@@ -99,8 +95,6 @@ namespace BlogAPI.Controllers
             {
                 return BadRequest("Invalid credentials");
             }
-
-            var x = new int[5];
                     
             var token = _credentialsService.CreateToken(user);
 

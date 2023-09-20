@@ -1,0 +1,25 @@
+theme = "ferra"
+
+[editor]
+auto-save = true
+bufferline = "multiple"
+
+[editor.statusline]
+center = ["spinner"]
+
+[editor.indent-guides]
+render = true
+character = "┆"
+skip-levels = 1
+
+[editor.lsp]
+display-messages = true
+display-inlay-hints = true
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[editor.file-picker]
+hidden = false

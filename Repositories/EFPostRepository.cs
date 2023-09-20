@@ -12,11 +12,10 @@ namespace BlogAPI.Repositories
 		{
 			_context = context;
 		}
-		// post specific db methods here
-
+		// post specific repository methods here
 		public override async Task<List<PostEntity>> GetAllAsync(int userId)
         {
-            return await _context.Set<PostEntity>().Where(p => p.Author.Id == userId).ToListAsync();
+            return await _context.Posts.Include(p => p.Author).Where(p => p.Author.Id == userId).ToListAsync();
         }	
 		public override async Task<PostEntity?> GetAsync(int id)
 		{
