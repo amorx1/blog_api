@@ -409,3 +409,6 @@ appsettings.json
 pgdata/
 docker-compose.yml
 Migrations/
+
+.vscode
+.helix
