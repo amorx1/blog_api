@@ -69,6 +69,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Conn
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<EFUserRepository>();
 builder.Services.AddScoped<EFPostRepository>();
+builder.Services.AddScoped<EFImageRepository>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();

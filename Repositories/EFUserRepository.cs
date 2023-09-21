@@ -24,7 +24,7 @@ namespace BlogAPI.Repositories
             {
                 return true;
             }
-            return await context.Set<UserEntity>().AnyAsync(u => u.EmailAddress == identifier) == true;
+            return await context.Users.AnyAsync(u => u.EmailAddress == identifier) == true;
         }
     }
 }

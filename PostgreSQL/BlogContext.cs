@@ -8,8 +8,12 @@ namespace BlogAPI.PostgreSQL
 {
     public class BlogContext : DbContext
     {
-        public BlogContext(DbContextOptions<BlogContext> options) : base(options){}
+        public BlogContext(DbContextOptions<BlogContext> options) : base(options)
+        {
+            
+        }
         public DbSet<UserEntity> Users { get; set; }
         public DbSet<PostEntity> Posts { get; set; }
+        public DbSet<ImageEntity> Images { get; set; }
     }
 }

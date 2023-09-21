@@ -1,85 +1,138 @@
-// using BlogAPI.Models;
-// using BlogAPI.PostgreSQL;
-// using BlogAPI.Interfaces;
-// using Microsoft.AspNetCore.Authorization;
-// using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using BlogAPI.Models;
+using BlogAPI.Dtos;
+using BlogAPI.Interfaces;
+using BlogAPI.Repositories;
+using AutoMapper;
 
-// namespace BlogAPI.Controllers;
+namespace BlogAPI.Controllers
+{
+	[ApiController]
+	[Route("api")]
+	public class PostsController : BaseController<PostEntity, PostReadDto, PostWriteDto, EFPostRepository>
+	{
+		private readonly EFPostRepository _postRepository;
+		private readonly EFUserRepository _userRepository;
+		private readonly EFImageRepository _imageRepository;
+		private readonly IMapper _mapper;
+		private readonly IAccountService _accountService;
+		
+		public PostsController(EFPostRepository postRepository, EFUserRepository userRepository, EFImageRepository imageRepository, IAccountService accountService, IMapper mapper) : base(postRepository, mapper)
+		{
+			_postRepository  = postRepository;
+			_userRepository = userRepository;
+			_imageRepository = imageRepository;
+			_mapper = mapper;
+			_accountService = accountService;
+		}
 
-// [ApiController]
-// [Route("api")]
-// public class PostController : ControllerBase
-// {
-//     private readonly BlogContext _db;
-//     private readonly IConfiguration _configuration;
-//     private readonly IAccountService _accountService;
-//     private readonly IPostRepository _postRepository;
+		[HttpGet("user/{userId}/posts")]
+		public async Task<ActionResult<ICollection<PostReadDto?>>> GetAllAsync([FromRoute] int userId)
+		{
+			var isOwner = _accountService.ResolveUser(userId);
+			var posts = await  _postRepository.GetAllAsync(userId);
 
-//     public PostController(BlogContext context, IConfiguration config, IAccountService accountService, IPostRepository postRepository)
-//     {
-//         _db = context;
-//         _configuration = config;
-//         _accountService = accountService;
-//         _postRepository = postRepository;
-//     }
+			if (await isOwner)
+			{
+				return Ok(posts.Select(p => _mapper.Map<PostReadDto>(p)));
+			}
+			else
+			{
+				// request is not by owner -> omit private posts
+				return Ok(posts.Where(p => !p.IsPrivate).Select(p => _mapper.Map<PostReadDto>(p)));
+			}
+		}
 
-//     [HttpPut("post/{postId}"), Authorize]
-//     public async Task<ActionResult> UpdatePostAsync(int postId, PostDto request)
-//     {
-//         if (await _accountService.ResolveUser(request.AuthorId))
-//         {
-// 	        return Ok(await _postRepository.UpdatePost(postId, request));
-//         }
-//         return Unauthorized("Access denied");
-//     }
+		[HttpGet("user/{userId}/posts/{postId}")]
+		public override async Task<ActionResult<PostReadDto?>> GetAsync([FromRoute] int userId, [FromRoute] int postId)
+		{
+			var isOwner = _accountService.ResolveUser(userId);
+			var post = await _postRepository.GetAsync(postId);
 
-//     [HttpDelete("post/{postId}"), Authorize]
-//     public async Task<ActionResult> DeletePostAsync(int postId, int authorId)
-//     {
-//         if (await _accountService.ResolveUser(authorId))
-//         {
-//             var success = await _postRepository.DeletePost(postId, authorId);
-//             return success ? Ok($"Deleted post ID: {postId} by user ID: {authorId}") : Problem("Error deleting post");
-//         }
-//         return Unauthorized("Access denied");
-//     }
+			if (post is null)
+			{
+				return NotFound();
+			}
+			
+			if (!await isOwner && post.IsPrivate)
+			{
+				return Unauthorized();
+			}
+			else
+			{
+				return _mapper.Map<PostReadDto>(post);
+			}
+			
+		}
+		
+		[HttpDelete("user/{userId}/posts/{postId}")]
+		public override async Task<ActionResult<PostReadDto?>> RemoveAsync([FromRoute] int userId, [FromRoute] int postId)
+		{
+			var isOwner = await _accountService.ResolveUser(userId);
+			if (!isOwner)
+			{
+				return Unauthorized();
+			}
+			else
+			{
+				var deletedPost = await _postRepository.DeleteAsync(postId);
+				if (deletedPost is null)
+				{
+					return NotFound();
+				}
+				return Ok(_mapper.Map<PostReadDto>(deletedPost));
+			}
+		}
 
-//     [HttpPost("post"), Authorize]
-//     public async Task<ActionResult> CreatePostAsync(PostDto request)
-//     {
-//         if (await _accountService.ResolveUser(request.AuthorId))
-//         {
-//             var newPost = await _postRepository.AddPost(request);
-//             return (newPost == null) ? Problem("Error creating post") : Ok(newPost);
-//         }
-//         return Unauthorized("Access denied");
-//     }
+		[HttpPut("user/{userId}/posts/{postId}")]
+		public override async Task<ActionResult<PostReadDto?>> UpdateAsync([FromRoute] int userId, [FromRoute] int postId, [FromBody] PostWriteDto request)
+		{
+			var isOwner = await _accountService.ResolveUser(userId);
+			if (!isOwner || userId != request.AuthorId)
+			{
+				return Unauthorized();
+			}
+			else
+			{
+				var postToUpdate = await _postRepository.GetAsync(postId);
+				if (postToUpdate is null)
+				{
+					return NotFound();
+				}
+				
+				if (request.Title is not null)
+				{
+					postToUpdate.Title = request.Title;
+				}
+				if (request.Body is not null)
+				{
+					postToUpdate.Body = request.Body;
+				}
+				if (request.Images is not null)
+				{
+					postToUpdate.Images = request.Images.Select(i => _mapper.Map<ImageEntity>(i)).ToList();
+				}
 
-//     [HttpGet("post/{postId}"), Authorize]
-//     public async Task<ActionResult<PostDto>> GetPostById(int postId)
-//     {
-//         var post = await  _postRepository.GetPost(postId);
-//         if (post == null)
-//         {
-//             return BadRequest("Post does not exist");
-//         }
-//         if (!post.IsPrivate || (post.IsPrivate && await _accountService.ResolveUser(post.AuthorId)))
-//         {
-//             return Ok(post);
-//         }
-//         return Unauthorized("Access denied");
-        
-//     }
+				postToUpdate.IsPrivate = request.IsPrivate;				
+				var updatedPost = await _postRepository.UpdateAsync(postToUpdate);
 
-//     // [HttpGet("posts/{userId}"), Authorize]
-//     // public async Task<ActionResult> GetPostsForUser(int userId)
-//     // {
-//     //     var author = await _db.Users.FindAsync(userId);
-//     //     var posts =
-//     //         await _accountService.ResolveUser(userId) ?
-//     //          _db.Posts.Where(p => p.Author == author).Select(p => p.AsDto())
-//     //         :
-//     //          _db.Posts.Where(p => p.Author == author && !p.IsPrivate).Select(p => p.AsDto());
-//     //     return Ok(posts.AsEnumerable().ToList());
-//     // }
-// }
+				return Ok(_mapper.Map<PostReadDto>(updatedPost));
+			}
+		}
+
+		[HttpPost("user/{userId}/posts/new")]
+		public override async Task<ActionResult<PostReadDto?>> CreateAsync(int userId, [FromBody] PostWriteDto request)
+		{
+			var isOwner = _accountService.ResolveUser(userId);
+			var newPost = _mapper.Map<PostEntity>(request);
+
+			if (!await isOwner || userId != request.AuthorId)
+			{
+				return Unauthorized();
+			}
+			var createdPost = await _postRepository.AddAsync(newPost);
+			
+			return Ok(_mapper.Map<PostReadDto>(createdPost));
+		}
+	}
+}

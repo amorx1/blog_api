@@ -13,6 +13,8 @@ namespace BlogAPI.Models
         public string? Title { get; set; }
         public string? Body { get; set; }
         public bool IsPrivate { get; set; }
-        public UserEntity Author { get; set; }
+        public int AuthorId { get; set; }
+        public UserEntity Author { get; set; } = null!;
+        public ICollection<ImageEntity>? Images { get; set; }
     }
 }

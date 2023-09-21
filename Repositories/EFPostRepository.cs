@@ -15,12 +15,12 @@ namespace BlogAPI.Repositories
 		// post specific repository methods here
 		public override async Task<List<PostEntity>> GetAllAsync(int userId)
         {
-            return await _context.Posts.Include(p => p.Author).Where(p => p.Author.Id == userId).ToListAsync();
-        }	
+            return await _context.Posts.Include(p => p.Images).Where(p => p.AuthorId == userId).ToListAsync();
+		}	
 		public override async Task<PostEntity?> GetAsync(int id)
 		{
 			// Here .Include() is used to prevent lazy loading which would cause Author information to be omitted.
-			return await _context.Posts.Include(p => p.Author).FirstOrDefaultAsync(p => p.Id == id);
+			return await _context.Posts.Include(p => p.Author).Include(p => p.Images).FirstOrDefaultAsync(p => p.Id == id);
 		}
 	}
 }

@@ -14,5 +14,6 @@ namespace BlogAPI.Dtos
         // TODO: not sure if want to display this yet
         // public bool IsPrivate { get; set; }
         public int AuthorId { get; set; }
+        public ICollection<ImageReadDto>? Images { get; set; }
     }
 }
