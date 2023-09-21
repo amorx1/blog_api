@@ -12,5 +12,8 @@ namespace BlogAPI.Dtos
         public string UserName { get; set; }
         public string EmailAddress { get; set; }
         public ICollection<PostReadDto>? Posts { get; set; }
+
+        public ICollection<SubscriptionReadDto>? Following { get; set; }
+        public ICollection<SubscriptionReadDto>? Followers { get; set; }
     }
 }

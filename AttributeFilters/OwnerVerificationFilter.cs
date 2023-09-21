@@ -12,6 +12,7 @@ namespace BlogAPI.AttributeFiters
 			var accountService = (IAccountService) context.HttpContext.RequestServices.GetService(typeof(IAccountService));
             var id = Int32.Parse(context.HttpContext.GetRouteValue("userId").ToString());
             var isOwner = await accountService.ResolveUser(id);
+			Console.WriteLine(isOwner);
 
 			// context.HttpContext.Items.Add("isOwner", isOwner);
 			context.ActionArguments.Add("isOwner", isOwner);

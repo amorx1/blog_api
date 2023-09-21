@@ -70,6 +70,7 @@ builder.Services.AddScoped<ICredentialsService, CredentialsService>();
 builder.Services.AddScoped<EFUserRepository>();
 builder.Services.AddScoped<EFPostRepository>();
 builder.Services.AddScoped<EFImageRepository>();
+builder.Services.AddScoped<EFSubscriptionRepository>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 var app = builder.Build();

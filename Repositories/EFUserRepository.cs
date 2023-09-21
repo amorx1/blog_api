@@ -26,5 +26,9 @@ namespace BlogAPI.Repositories
             }
             return await context.Users.AnyAsync(u => u.EmailAddress == identifier) == true;
         }
+        public async Task<UserEntity> GetAsync(int id)
+        {
+            return await context.Users.Include(u => u.Following).Include(u => u.Followers).Include(u => u.Posts).FirstOrDefaultAsync(u => u.Id == id);
+        }
     }
 }

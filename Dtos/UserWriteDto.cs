@@ -12,5 +12,7 @@ namespace BlogAPI.Dtos
         public string EmailAddress { get; set; }
         public string Password { get; set; }
         public ICollection<PostWriteDto>? Posts { get; set; }
+        public ICollection<SubscriptionWriteDto>? Following { get; set; }
+        public ICollection<SubscriptionWriteDto>? Followers { get; set; }
     }
 }
