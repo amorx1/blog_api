@@ -18,8 +18,8 @@ namespace BlogAPI.Controllers
 
         public BaseController(TRepository repository, IMapper mapper)
         {
-            this._repository = repository;
-            this._mapper = mapper;
+            _repository = repository;
+            _mapper = mapper;
         }
 
         // TODO: Provide generic implementations and override if necessary in concrete controllers.
@@ -28,7 +28,7 @@ namespace BlogAPI.Controllers
         {
             throw new NotImplementedException();
         }
-        public virtual Task<ActionResult<TReadDto?>> GetAsync(int id1, int id2)
+        public virtual Task<ActionResult<TReadDto?>> GetAsync(int id1, int id2, bool ownership)
         {
             throw new NotImplementedException();
         }
@@ -36,7 +36,7 @@ namespace BlogAPI.Controllers
         {
             throw new NotImplementedException();
         }
-        public virtual Task<ActionResult<TReadDto?>> RemoveAsync(int id1, int id2)
+        public virtual Task<ActionResult<TReadDto?>> RemoveAsync(int id1, int id2, bool ownership)
         {
             throw new NotImplementedException();
         }
@@ -44,7 +44,7 @@ namespace BlogAPI.Controllers
         {
             throw new NotImplementedException();
         }
-        public virtual Task<ActionResult<TReadDto?>> UpdateAsync(int id1, int id2, TWriteDto updates)
+        public virtual Task<ActionResult<TReadDto?>> UpdateAsync(int id1, int id2, TWriteDto updates, bool ownership)
         {
             throw new NotImplementedException();
         }
@@ -52,7 +52,7 @@ namespace BlogAPI.Controllers
         {
             throw new NotImplementedException();
         }
-        public virtual Task<ActionResult<TReadDto?>> CreateAsync(int id, TWriteDto request)
+        public virtual Task<ActionResult<TReadDto?>> CreateAsync(int id, TWriteDto request, bool ownership)
         {
             throw new NotImplementedException();
         }

@@ -3,6 +3,7 @@ using BlogAPI.Models;
 using BlogAPI.Dtos;
 using BlogAPI.Interfaces;
 using BlogAPI.Repositories;
+using BlogAPI.AttributeFiters;
 using AutoMapper;
 
 namespace BlogAPI.Controllers
@@ -26,13 +27,12 @@ namespace BlogAPI.Controllers
 			_accountService = accountService;
 		}
 
-		[HttpGet("user/{userId}/posts")]
-		public async Task<ActionResult<ICollection<PostReadDto?>>> GetAllAsync([FromRoute] int userId)
+		[HttpGet("user/{userId}/posts"), OwnerVerificationFilter]
+		public async Task<ActionResult<ICollection<PostReadDto?>>> GetAllAsync([FromRoute] int userId, bool isOwner)
 		{
-			var isOwner = _accountService.ResolveUser(userId);
 			var posts = await  _postRepository.GetAllAsync(userId);
 
-			if (await isOwner)
+			if (isOwner)
 			{
 				return Ok(posts.Select(p => _mapper.Map<PostReadDto>(p)));
 			}
@@ -43,10 +43,9 @@ namespace BlogAPI.Controllers
 			}
 		}
 
-		[HttpGet("user/{userId}/posts/{postId}")]
-		public override async Task<ActionResult<PostReadDto?>> GetAsync([FromRoute] int userId, [FromRoute] int postId)
+		[HttpGet("user/{userId}/posts/{postId}"), OwnerVerificationFilter]
+		public override async Task<ActionResult<PostReadDto?>> GetAsync([FromRoute] int userId, [FromRoute] int postId, bool isOwner)
 		{
-			var isOwner = _accountService.ResolveUser(userId);
 			var post = await _postRepository.GetAsync(postId);
 
 			if (post is null)
@@ -54,7 +53,7 @@ namespace BlogAPI.Controllers
 				return NotFound();
 			}
 			
-			if (!await isOwner && post.IsPrivate)
+			if (post.IsPrivate && !isOwner)
 			{
 				return Unauthorized();
 			}
@@ -66,9 +65,8 @@ namespace BlogAPI.Controllers
 		}
 		
 		[HttpDelete("user/{userId}/posts/{postId}")]
-		public override async Task<ActionResult<PostReadDto?>> RemoveAsync([FromRoute] int userId, [FromRoute] int postId)
+		public override async Task<ActionResult<PostReadDto?>> RemoveAsync([FromRoute] int userId, [FromRoute] int postId, bool isOwner)
 		{
-			var isOwner = await _accountService.ResolveUser(userId);
 			if (!isOwner)
 			{
 				return Unauthorized();
@@ -85,9 +83,8 @@ namespace BlogAPI.Controllers
 		}
 
 		[HttpPut("user/{userId}/posts/{postId}")]
-		public override async Task<ActionResult<PostReadDto?>> UpdateAsync([FromRoute] int userId, [FromRoute] int postId, [FromBody] PostWriteDto request)
+		public override async Task<ActionResult<PostReadDto?>> UpdateAsync([FromRoute] int userId, [FromRoute] int postId, [FromBody] PostWriteDto request, bool isOwner)
 		{
-			var isOwner = await _accountService.ResolveUser(userId);
 			if (!isOwner || userId != request.AuthorId)
 			{
 				return Unauthorized();
@@ -121,12 +118,11 @@ namespace BlogAPI.Controllers
 		}
 
 		[HttpPost("user/{userId}/posts/new")]
-		public override async Task<ActionResult<PostReadDto?>> CreateAsync(int userId, [FromBody] PostWriteDto request)
+		public override async Task<ActionResult<PostReadDto?>> CreateAsync(int userId, [FromBody] PostWriteDto request, bool isOwner)
 		{
-			var isOwner = _accountService.ResolveUser(userId);
 			var newPost = _mapper.Map<PostEntity>(request);
 
-			if (!await isOwner || userId != request.AuthorId)
+			if (!isOwner || userId != request.AuthorId)
 			{
 				return Unauthorized();
 			}

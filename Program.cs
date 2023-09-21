@@ -63,10 +63,10 @@ builder.Services.AddDbContext<BlogContext>(options =>
         .EnableSensitiveDataLogging()
         );
 
-builder.Services.AddScoped<ICredentialsService, CredentialsService>();
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")));
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<ICredentialsService, CredentialsService>();
 builder.Services.AddScoped<EFUserRepository>();
 builder.Services.AddScoped<EFPostRepository>();
 builder.Services.AddScoped<EFImageRepository>();
