@@ -1,7 +1,4 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations.Schema;
-using BlogAPI.Interfaces;
 using BlogAPI.Models;
 
 namespace BlogAPI.PostgreSQL
